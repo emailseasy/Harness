@@ -49,7 +49,7 @@ if os.getenv("ANTHROPIC_BASE_URL"):
 client = Anthropic(base_url=os.getenv("ANTHROPIC_BASE_URL"))
 MODEL = os.environ["MODEL_ID"]
 
-SYSTEM = f"You are a coding agent at {os.getcwd()}. Use bash to solve tasks. Act, don't explain."
+SYSTEM = f"You are a coding agent at {os.getcwd()}. Use bash to solve tasks. Before act explain why you will do, then act, after act explain what you will do next if there are any."
 
 TOOLS = [{
     "name": "bash",
@@ -80,10 +80,11 @@ def run_bash(command: str) -> str:
 # -- The core pattern: a while loop that calls tools until the model stops --
 def agent_loop(messages: list):
     while True:
-        response = client.messages.create(
+        with client.messages.stream(
             model=MODEL, system=SYSTEM, messages=messages,
             tools=TOOLS, max_tokens=8000,
-        )
+        ) as stream:
+            response = stream.get_final_message()
         # Append assistant turn
         messages.append({"role": "assistant", "content": response.content})
         # If the model didn't call a tool, we're done
