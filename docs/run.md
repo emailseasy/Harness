@@ -19,3 +19,6 @@ To run it from your existing env:
   set AWS_BEARER_TOKEN_BEDROCK=<your short-term Bedrock key>
   set AWS_REGION=ca-central-1
   python agents/s01_agent_loop_bedrock.py
+
+  aws bedrock-runtime converse \
+--model-id arn:aws:bedrock:ca-central-1:xxxxxxx:inference-profile/global.amazon.nova-2-lite-v1:0
