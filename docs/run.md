@@ -1,1 +1,3 @@
-aws: [ERROR]: Could not connect to the endpoint URL: "https://bedrock.can-central-a.amazonaws.com/foundation-models"
+aws bedrock list-foundation-models --region ca-central-1 \                                                                                               
+    --query 'modelSummaries[?contains(modelId, `nova`)].[modelId,modelName,inferenceTypesSupported]' \
+    --output table
