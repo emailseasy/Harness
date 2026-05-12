@@ -1,3 +1,8 @@
+
+aws bedrock list-foundation-models --region ca-central-1 --output text | grep -i nova
+MODELSUMMARIES  arn:aws:bedrock:ca-central-1::foundation-model/amazon.nova-lite-v1:0    amazon.nova-lite-v1:0   Nova Lite       Amazon  True
+MODELSUMMARIES  arn:aws:bedrock:ca-central-1::foundation-model/amazon.nova-2-lite-v1:0  amazon.nova-2-lite-v1:0 Nova 2 Lite     Amazon  True
+
 Linux bash 版本完整流程：                        
 
   ---                                                                                                                                                          1️⃣  环境检查
