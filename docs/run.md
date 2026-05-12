@@ -45,3 +45,9 @@ MODELS  arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-2-lite-v1:0
 MODELS  arn:aws:bedrock:us-east-2::foundation-model/amazon.nova-2-lite-v1:0
 MODELS  arn:aws:bedrock:ca-central-1::foundation-model/amazon.nova-2-lite-v1:0
 MODELS  arn:aws:bedrock:us-west-2::foundation-model/amazon.nova-2-lite-v1:0
+export BEDROCK_MODEL_ID=us.amazon.nova-2-lite-v1:0
+  python Agent_loop.py
+
+  按之前的分析，这条 profile 路由到 ca-central-1 / us-east-1 / us-east-2 / us-west-2 四个 region，全部带具体 region ARN，应该绕过 SCP 拦截。
+
+  跑通了发一下结果！如果还是被拒，再看错误里的 SCP 是不是又拒了别的 ARN 模式。
