@@ -15,6 +15,22 @@ MODELSUMMARIES  arn:aws:bedrock:ca-central-1::foundation-model/amazon.nova-2-lit
 
   预期能看到 global.amazon.nova-2-lite-v1:0 和 us.amazon.nova-2-lite-v1:0。
 
+aws bedrock list-foundation-models --region ca-central-1 --query "modelSummaries[?contains(modelId, 'nova-2-lite')].[modelId,inferenceTypesSupported]" --output table
+-----------------------------
+|   ListFoundationModels    |
++---------------------------+
+|  amazon.nova-2-lite-v1:0  |
+|  INFERENCE_PROFILE        |
++---------------------------+
+[xxj000@OMEGA.DCE-EIR.NET@M75F6BBEC32E46 ~]$  aws bedrock list-inference-profiles --region ca-central-1 --output text | grep -i nova-2-lite
+INFERENCEPROFILESUMMARIES       2025-11-04T23:14:33.804883+00:00        Routes requests to Amazon Nova 2 Lite globally across all supported AWS Regions.       arn:aws:bedrock:ca-central-1:539524424690:inference-profile/global.amazon.nova-2-lite-v1:0      global.amazon.nova-2-lite-v1:0GLOBAL Amazon Nova 2 Lite        ACTIVE  SYSTEM_DEFINED  2025-11-22T21:08:18.810118+00:00
+MODELS  arn:aws:bedrock:::foundation-model/amazon.nova-2-lite-v1:0
+MODELS  arn:aws:bedrock:ca-central-1::foundation-model/amazon.nova-2-lite-v1:0
+INFERENCEPROFILESUMMARIES       2025-11-07T03:42:29.890902+00:00        Routes requests to Amazon Nova 2 Lite in ca-central-1, us-east-1, us-east-2 and us-west-2.     arn:aws:bedrock:ca-central-1:539524424690:inference-profile/us.amazon.nova-2-lite-v1:0  us.amazon.nova-2-lite-v1:0    US Amazon Nova 2 Lite    ACTIVE  SYSTEM_DEFINED  2025-11-22T21:08:24.665280+00:00
+MODELS  arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-2-lite-v1:0
+MODELS  arn:aws:bedrock:us-east-2::foundation-model/amazon.nova-2-lite-v1:0
+MODELS  arn:aws:bedrock:ca-central-1::foundation-model/amazon.nova-2-lite-v1:0
+MODELS  arn:aws:bedrock:us-west-2::foundation-model/amazon.nova-2-lite-v1:0
   ---
   3. 直接试跑（这个账号没有 SCP 限制，global.* 应该能用）：
 
