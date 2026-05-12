@@ -1,53 +1,109 @@
-amazon.nova-2-lite-v1:0   →   INFERENCE_PROFILE (没有 ON_DEMAND)                                                                                              
-  意思是：在 ca-central-1 当地 Nova 2 Lite 没有直接部署，只能通过 inference profile 调用。所以 amazon.nova-2-lite-v1:0 这个直接 model ID 不可用 — 必须用       profile 前缀（如 global. / us.）。但 global.* 又被 SCP 拒了。                                                                                            
+Linux bash 版本完整流程：                        
 
-  但 Playground 能用，说明账号里至少有一个 inference profile 是被允许的。 列出来看：
+  ---                                                                                                                                                          1️⃣  环境检查
+                                                                                                                                                               # Python（Linux 一般是 python3）                                                                                                                         
+  python3 --version          # 应该 >= 3.8
 
-  aws bedrock list-inference-profiles --region ca-central-1 \
-    --query "inferenceProfileSummaries[?contains(inferenceProfileId, 'nova-2-lite')].[inferenceProfileId,inferenceProfileName,status]" \
+  # boto3 版本（需要 >= 1.39.0）
+  python3 -c "import boto3; print(boto3.__version__)"
+
+  # 如果没装或太老
+  pip3 install --user --upgrade boto3
+
+  # AWS CLI（用于诊断）
+  aws --version              # 没有的话: pip3 install --user awscli
+
+  ---
+  2️⃣  网络检查
+
+  # 代理变量
+  echo "HTTPS_PROXY=$HTTPS_PROXY"
+  echo "HTTP_PROXY=$HTTP_PROXY"
+  echo "NO_PROXY=$NO_PROXY"
+
+  # 直连 Bedrock 测试
+  curl -sI https://bedrock.ca-central-1.amazonaws.com | head -1
+
+  返回 HTTP/2 403/404 ⇒ OK（能联通，缺凭据而已）。如果 timeout/connection refused/SSL error ⇒ 网络问题。
+
+  ---
+  3️⃣  设置 AWS 凭据
+
+  选项 A：access key（推荐用于新账号）
+  export AWS_ACCESS_KEY_ID="AKIA..."
+  export AWS_SECRET_ACCESS_KEY="...."
+  export AWS_REGION="ca-central-1"
+
+  选项 B：Bedrock 短期 API key
+  export AWS_BEARER_TOKEN_BEDROCK="xxxxxxx="
+  export AWS_REGION="ca-central-1"
+
+  ---
+  4️⃣  验证身份和权限
+
+  # 身份（应返回新账号的 ARN）
+  aws sts get-caller-identity
+
+  # Nova 2 Lite 是否在这个账号 + region 里可见
+  aws bedrock list-foundation-models --region ca-central-1 \
+    --query "modelSummaries[?contains(modelId, 'nova-2-lite')].[modelId,inferenceTypesSupported]" \
     --output table
 
-  或者干脆把所有都列出来：
-
+  # 看能用哪些 inference profile 前缀
   aws bedrock list-inference-profiles --region ca-central-1 --output text | grep -i nova-2-lite
 
-  输出会告诉你账号下能用的 profile 前缀（可能有 us., apac., eu., global., 或者公司自建的 application inference profile）。
+  ---
+  5️⃣  设置脚本要用的变量
+
+  export BEDROCK_MODEL_ID="global.amazon.nova-2-lite-v1:0"
+  # 如果 global 被 SCP 拒，换:
+  # export BEDROCK_MODEL_ID="us.amazon.nova-2-lite-v1:0"
 
   ---
-  最有可能可用的几个，按顺序试：
+  6️⃣  跑
 
-  # 选项 A: US 跨 region（不是 global）
-  export BEDROCK_MODEL_ID=us.amazon.nova-2-lite-v1:0
-  python Agent_loop.py
-
-  # 选项 B: APAC
-  export BEDROCK_MODEL_ID=apac.amazon.nova-2-lite-v1:0
-
-  # 选项 C: EU
-  export BEDROCK_MODEL_ID=eu.amazon.nova-2-lite-v1:0
-
-  
-
-  如果其中一个跑通 → 公司 SCP 是按 profile 前缀做的白名单，global. 被拒但其他允许。
+  python3 Agent_loop.py
 
   ---
-  如果想精准定位 Playground 用的是哪个，浏览器里打开 Playground，F12 → Network 标签 → 发一句话 → 看请求 URL 里有什么。但通常不必，先把上面
-  list-inference-profiles 跑一下，结果发我看一下，就基本能定位。
+  一键检查脚本（拷贝粘贴一次跑完）
 
+  echo "=== Python ==="
+  python3 --version
+  python3 -c "import boto3; print('boto3', boto3.__version__)"
 
-  -----
-  ~ $ aws bedrock list-inference-profiles --region ca-central-1 --output text | grep -i nova-2-lite
-INFERENCEPROFILESUMMARIES       2025-11-04T23:14:33.804883+00:00        Routes requests to Amazon Nova 2 Lite globally across all supported AWS Regions.        arn:aws:bedrock:ca-central-1:622833591164:inference-profile/global.amazon.nova-2-lite-v1:0        global.amazon.nova-2-lite-v1:0  GLOBAL Amazon Nova 2 Lite       ACTIVE  SYSTEM_DEFINED  2025-11-22T21:08:18.810118+00:00
-MODELS  arn:aws:bedrock:::foundation-model/amazon.nova-2-lite-v1:0
-MODELS  arn:aws:bedrock:ca-central-1::foundation-model/amazon.nova-2-lite-v1:0
-INFERENCEPROFILESUMMARIES       2025-11-07T03:42:29.890902+00:00        Routes requests to Amazon Nova 2 Lite in ca-central-1, us-east-1, us-east-2 and us-west-2.      arn:aws:bedrock:ca-central-1:622833591164:inference-profile/us.amazon.nova-2-lite-v1:0    us.amazon.nova-2-lite-v1:0      US Amazon Nova 2 Lite   ACTIVE  SYSTEM_DEFINED  2025-11-22T21:08:24.665280+00:00
-MODELS  arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-2-lite-v1:0
-MODELS  arn:aws:bedrock:us-east-2::foundation-model/amazon.nova-2-lite-v1:0
-MODELS  arn:aws:bedrock:ca-central-1::foundation-model/amazon.nova-2-lite-v1:0
-MODELS  arn:aws:bedrock:us-west-2::foundation-model/amazon.nova-2-lite-v1:0
-export BEDROCK_MODEL_ID=us.amazon.nova-2-lite-v1:0
-  python Agent_loop.py
+  echo -e "\n=== Proxy ==="
+  echo "HTTPS_PROXY=$HTTPS_PROXY"
+  echo "HTTP_PROXY=$HTTP_PROXY"
+  echo "NO_PROXY=$NO_PROXY"
 
-  按之前的分析，这条 profile 路由到 ca-central-1 / us-east-1 / us-east-2 / us-west-2 四个 region，全部带具体 region ARN，应该绕过 SCP 拦截。
+  echo -e "\n=== Network to Bedrock ==="
+  curl -sI https://bedrock.${AWS_REGION:-ca-central-1}.amazonaws.com | head -1
 
-  跑通了发一下结果！如果还是被拒，再看错误里的 SCP 是不是又拒了别的 ARN 模式。
+  echo -e "\n=== AWS Identity ==="
+  aws sts get-caller-identity
+
+  echo -e "\n=== Bedrock model access ==="
+  aws bedrock list-foundation-models --region "${AWS_REGION:-ca-central-1}" \
+    --query "modelSummaries[?contains(modelId, 'nova-2-lite')].[modelId,inferenceTypesSupported]" \
+    --output table
+
+  echo -e "\n=== Env vars for script ==="
+  echo "AWS_REGION=$AWS_REGION"
+  echo "BEDROCK_MODEL_ID=$BEDROCK_MODEL_ID"
+  echo "AWS_BEARER_TOKEN_BEDROCK=${AWS_BEARER_TOKEN_BEDROCK:+(set, hidden)}"
+
+  ---
+  保存到一个文件方便重复用：
+  cat > ~/check.sh << 'EOF'
+  #!/usr/bin/env bash
+  # 把上面那段一键检查脚本内容粘贴在这里
+  EOF
+  chmod +x ~/check.sh
+  ~/check.sh
+
+  ---
+  最常见的两个失败点：
+  1. aws sts get-caller-identity 报错 ⇒ 凭据没设
+  2. list-foundation-models 空或 AccessDenied ⇒ 这个账号还没在 Bedrock console 启用 Nova 2 Lite 的 model access（ca-central-1 region 下点 Request access）
+
+  通过 1-4 步后基本稳了。任何一步卡住把输出贴过来。
