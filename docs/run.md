@@ -3,6 +3,36 @@ aws bedrock list-foundation-models --region ca-central-1 --output text | grep -i
 MODELSUMMARIES  arn:aws:bedrock:ca-central-1::foundation-model/amazon.nova-lite-v1:0    amazon.nova-lite-v1:0   Nova Lite       Amazon  True
 MODELSUMMARIES  arn:aws:bedrock:ca-central-1::foundation-model/amazon.nova-2-lite-v1:0  amazon.nova-2-lite-v1:0 Nova 2 Lite     Amazon  True
 
+✅ Nova 2 Lite 在这个账号 + ca-central-1 是可见的。 接下来确认能不能调用。
+
+  1. 看 inference 类型（确认必须用 profile）：                                                                                                                 aws bedrock list-foundation-models --region ca-central-1 \
+    --query "modelSummaries[?contains(modelId, 'nova-2-lite')].[modelId,inferenceTypesSupported]" \                                                              --output table                                                                                                                                         
+
+  预期会看到 INFERENCE_PROFILE（和之前账号一样，ca-central-1 当地没有 ON_DEMAND 直接部署）→ 必须走 profile 前缀。
+
+  2. 看哪些 profile 可用：
+  aws bedrock list-inference-profiles --region ca-central-1 --output text | grep -i nova-2-lite
+
+  预期能看到 global.amazon.nova-2-lite-v1:0 和 us.amazon.nova-2-lite-v1:0。
+
+  ---
+  3. 直接试跑（这个账号没有 SCP 限制，global.* 应该能用）：
+
+  export AWS_PROFILE=<profilename>
+  export AWS_REGION=ca-central-1
+  export BEDROCK_MODEL_ID=global.amazon.nova-2-lite-v1:0
+  python3 Agent_loop.py
+
+  ---
+  如果跑出 AccessDeniedException，最常见是 model access 没启用。去 Bedrock console:
+  - Region: ca-central-1
+  - 左边菜单 → Model access
+  - 看 Amazon Nova 2 Lite 状态是不是 Access granted
+  - 不是的话点 Request access（Amazon 自家模型几分钟就批）
+
+  ---
+  直接跑第 3 步，看会得到什么。AccessDenied / 正常输出 / 其他错误 → 都贴出来就能继续诊断。
+
 Linux bash 版本完整流程：                        
 
   ---                                                                                                                                                          1️⃣  环境检查
