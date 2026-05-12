@@ -158,3 +158,21 @@ Linux bash 版本完整流程：
   2. list-foundation-models 空或 AccessDenied ⇒ 这个账号还没在 Bedrock console 启用 Nova 2 Lite 的 model access（ca-central-1 region 下点 Request access）
 
   通过 1-4 步后基本稳了。任何一步卡住把输出贴过来。
+python3.12 agent_loop.py 
+readline: enable-meta-keybindings: unknown variable name
+how manyAgentLoop >> how many files in current directory?
+Traceback (most recent call last):
+  File "/home/xxj000/PDP-DataEngineer-Dev/harness/agent_loop.py", line 104, in <module>
+    agent_loop(history)
+  File "/home/xxj000/PDP-DataEngineer-Dev/harness/agent_loop.py", line 67, in agent_loop
+    response = client.converse(
+               ^^^^^^^^^^^^^^^^
+  File "/home/xxj000/.local/lib/python3.12/site-packages/botocore/client.py", line 606, in _api_call
+    return self._make_api_call(operation_name, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/xxj000/.local/lib/python3.12/site-packages/botocore/context.py", line 123, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/xxj000/.local/lib/python3.12/site-packages/botocore/client.py", line 1094, in _make_api_call
+    raise error_class(parsed_response, operation_name)
+botocore.errorfactory.AccessDeniedException: An error occurred (AccessDeniedException) when calling the Converse operation: User: arn:aws:sts::539524424690:assumed-role/AWSReservedSSO_DeveloperReadOnlyAccess_61b8c59a7d706330/Xiaofei.Jia@cra-arc.gc.ca is not authorized to perform: bedrock:InvokeModel on resource: arn:aws:bedrock:ca-central-1:539524424690:inference-profile/global.amazon.nova-2-lite-v1:0 because no identity-based policy allows the bedrock:InvokeModel action
