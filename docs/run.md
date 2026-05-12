@@ -26,8 +26,22 @@ amazon.nova-2-lite-v1:0   →   INFERENCE_PROFILE (没有 ON_DEMAND)
   # 选项 C: EU
   export BEDROCK_MODEL_ID=eu.amazon.nova-2-lite-v1:0
 
+  
+
   如果其中一个跑通 → 公司 SCP 是按 profile 前缀做的白名单，global. 被拒但其他允许。
 
   ---
   如果想精准定位 Playground 用的是哪个，浏览器里打开 Playground，F12 → Network 标签 → 发一句话 → 看请求 URL 里有什么。但通常不必，先把上面
   list-inference-profiles 跑一下，结果发我看一下，就基本能定位。
+
+
+  -----
+  ~ $ aws bedrock list-inference-profiles --region ca-central-1 --output text | grep -i nova-2-lite
+INFERENCEPROFILESUMMARIES       2025-11-04T23:14:33.804883+00:00        Routes requests to Amazon Nova 2 Lite globally across all supported AWS Regions.        arn:aws:bedrock:ca-central-1:622833591164:inference-profile/global.amazon.nova-2-lite-v1:0        global.amazon.nova-2-lite-v1:0  GLOBAL Amazon Nova 2 Lite       ACTIVE  SYSTEM_DEFINED  2025-11-22T21:08:18.810118+00:00
+MODELS  arn:aws:bedrock:::foundation-model/amazon.nova-2-lite-v1:0
+MODELS  arn:aws:bedrock:ca-central-1::foundation-model/amazon.nova-2-lite-v1:0
+INFERENCEPROFILESUMMARIES       2025-11-07T03:42:29.890902+00:00        Routes requests to Amazon Nova 2 Lite in ca-central-1, us-east-1, us-east-2 and us-west-2.      arn:aws:bedrock:ca-central-1:622833591164:inference-profile/us.amazon.nova-2-lite-v1:0    us.amazon.nova-2-lite-v1:0      US Amazon Nova 2 Lite   ACTIVE  SYSTEM_DEFINED  2025-11-22T21:08:24.665280+00:00
+MODELS  arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-2-lite-v1:0
+MODELS  arn:aws:bedrock:us-east-2::foundation-model/amazon.nova-2-lite-v1:0
+MODELS  arn:aws:bedrock:ca-central-1::foundation-model/amazon.nova-2-lite-v1:0
+MODELS  arn:aws:bedrock:us-west-2::foundation-model/amazon.nova-2-lite-v1:0
